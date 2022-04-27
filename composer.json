@@ -1,0 +1,45 @@
+{
+    "name": "clarkwinkelmann/flarum-ext-scout",
+    "description": "Algolia and Meilisearch search for Flarum",
+    "keywords": [
+        "flarum"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "flarum/core": "^1.2",
+        "laravel/scout": "^9.4",
+        "algolia/algoliasearch-client-php": "^3.2",
+        "http-interop/http-factory-guzzle": "^1.0",
+        "meilisearch/meilisearch-php": "*"
+    },
+    "authors": [
+        {
+            "name": "Clark Winkelmann",
+            "email": "clark.winkelmann@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/clarkwinkelmann/flarum-ext-scout"
+    },
+    "autoload": {
+        "psr-4": {
+            "ClarkWinkelmann\\Scout\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Scout Search",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-search",
+                "backgroundColor": "#f47f68",
+                "color": "#fff"
+            }
+        }
+    }
+}
