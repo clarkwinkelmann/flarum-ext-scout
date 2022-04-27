@@ -26,13 +26,19 @@ class DiscussionGambit implements GambitInterface
         ]);
 
         $postIds = $postBuilder->keys()->all();
+        $postIdsCount = count($postIds);
+
+        // We could replace the "where field" with "where false" everywhere when there are no IDs, but it's easier to
+        // keep a FIELD() statement and just hard-code some values to prevent SQL errors
+        // we know nothing will be returned anyway, so it doesn't really matter what impact it has on the query
+        $postIdsSql = $postIdsCount > 0 ? str_repeat(', ?', count($postIds)) : ', 0';
 
         $query = $search->getQuery();
         $grammar = $query->getGrammar();
 
         $allMatchingPostsQuery = Post::whereVisibleTo($search->getActor())
             ->select('posts.discussion_id')
-            ->selectRaw('FIELD(id' . str_repeat(', ?', count($postIds)) . ') as priority', $postIds)
+            ->selectRaw('FIELD(id' . $postIdsSql . ') as priority', $postIds)
             ->where('posts.type', 'comment')
             ->whereIn('id', $postIds);
 
@@ -59,7 +65,7 @@ class DiscussionGambit implements GambitInterface
                 'posts.discussion_id'
             )
             ->whereIn('id', $postIds)
-            ->whereRaw('FIELD(id' . str_repeat(', ?', count($postIds)) . ') = best_matching_posts.min_priority', $postIds)
+            ->whereRaw('FIELD(id' . $postIdsSql . ') = best_matching_posts.min_priority', $postIds)
             ->addBinding($bestMatchingPostQuery->getBindings(), 'join');
 
         $query
@@ -78,12 +84,8 @@ class DiscussionGambit implements GambitInterface
             ->groupBy('discussions.id')
             ->addBinding($subquery->getBindings(), 'join');
 
-        $search->setDefaultSort(function ($query) use ($postIds) {
-            if (!count($postIds)) {
-                return;
-            }
-
-            $query->orderByRaw('FIELD(id' . str_repeat(', ?', count($postIds)) . ')', $postIds);
+        $search->setDefaultSort(function ($query) use ($postIdsSql, $postIds) {
+            $query->orderByRaw('FIELD(id' . $postIdsSql . ')', $postIds);
         });
     }
 }
