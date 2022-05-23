@@ -21,7 +21,8 @@
         }
     ],
     "support": {
-        "source": "https://github.com/clarkwinkelmann/flarum-ext-scout"
+        "source": "https://github.com/clarkwinkelmann/flarum-ext-scout",
+        "forum": "https://discuss.flarum.org/d/30874"
     },
     "autoload": {
         "psr-4": {
