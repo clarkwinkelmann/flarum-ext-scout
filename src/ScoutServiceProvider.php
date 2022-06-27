@@ -4,6 +4,7 @@ namespace ClarkWinkelmann\Scout;
 
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\AbstractServiceProvider;
+use Flarum\Post\CommentPost;
 use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
@@ -38,6 +39,7 @@ class ScoutServiceProvider extends AbstractServiceProvider
 
     public function boot()
     {
+        CommentPost::observe(new FlarumModelObserver());
         Discussion::observe(new FlarumModelObserver());
         Post::observe(new FlarumModelObserver());
         User::observe(new FlarumModelObserver());
