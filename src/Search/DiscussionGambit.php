@@ -42,12 +42,14 @@ class DiscussionGambit implements GambitInterface
             ->where('posts.type', 'comment')
             ->whereIn('id', $postIds);
 
+        // Using wrap() instead of wrapTable() in join subquery to skip table prefixes
+        // Using raw() in the join table name to use the same prefixless name
         $bestMatchingPostQuery = Post::query()
             ->select('posts.discussion_id')
             ->selectRaw('min(matching_posts.priority) as min_priority')
             ->join(
-                new Expression('(' . $allMatchingPostsQuery->toSql() . ') ' . $grammar->wrapTable('matching_posts')),
-                'matching_posts.discussion_id',
+                new Expression('(' . $allMatchingPostsQuery->toSql() . ') ' . $grammar->wrap('matching_posts')),
+                $query->raw('matching_posts.discussion_id'),
                 '=',
                 'posts.discussion_id'
             )
@@ -59,8 +61,8 @@ class DiscussionGambit implements GambitInterface
             ->select('posts.discussion_id')
             ->selectRaw('id as most_relevant_post_id')
             ->join(
-                new Expression('(' . $bestMatchingPostQuery->toSql() . ') ' . $grammar->wrapTable('best_matching_posts')),
-                'best_matching_posts.discussion_id',
+                new Expression('(' . $bestMatchingPostQuery->toSql() . ') ' . $grammar->wrap('best_matching_posts')),
+                $query->raw('best_matching_posts.discussion_id'),
                 '=',
                 'posts.discussion_id'
             )
@@ -74,10 +76,10 @@ class DiscussionGambit implements GambitInterface
                     ->whereNotNull('most_relevant_post_id')
                     ->orWhereIn('id', $discussionIds);
             })
-            ->selectRaw('COALESCE(posts_ft.most_relevant_post_id, discussions.first_post_id) as most_relevant_post_id')
+            ->selectRaw('COALESCE(posts_ft.most_relevant_post_id, ' . $grammar->wrapTable('discussions') . '.first_post_id) as most_relevant_post_id')
             ->leftJoin(
-                new Expression('(' . $subquery->toSql() . ') ' . $grammar->wrapTable('posts_ft')),
-                'posts_ft.discussion_id',
+                new Expression('(' . $subquery->toSql() . ') ' . $grammar->wrap('posts_ft')),
+                $query->raw('posts_ft.discussion_id'),
                 '=',
                 'discussions.id'
             )
