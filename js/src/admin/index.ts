@@ -9,6 +9,7 @@ app.initializers.add('clarkwinkelmann-scout', () => {
                 null: app.translator.trans('clarkwinkelmann-scout.admin.setting.driverOption.null'),
                 algolia: app.translator.trans('clarkwinkelmann-scout.admin.setting.driverOption.algolia'),
                 meilisearch: app.translator.trans('clarkwinkelmann-scout.admin.setting.driverOption.meilisearch'),
+                tntsearch: app.translator.trans('clarkwinkelmann-scout.admin.setting.driverOption.tntsearch'),
             },
             default: 'null',
             label: app.translator.trans('clarkwinkelmann-scout.admin.setting.driver'),
@@ -53,5 +54,34 @@ app.initializers.add('clarkwinkelmann-scout', () => {
             type: 'text',
             setting: 'clarkwinkelmann-scout.meilisearchKey',
             label: app.translator.trans('clarkwinkelmann-scout.admin.setting.meilisearchKey'),
+        })
+        .registerSetting({
+            type: 'number',
+            setting: 'clarkwinkelmann-scout.tntsearchMaxDocs',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.tntsearchMaxDocs'),
+            placeholder: '500',
+        })
+        .registerSetting({
+            type: 'switch',
+            setting: 'clarkwinkelmann-scout.tntsearchFuzziness',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.tntsearchFuzziness'),
+        })
+        .registerSetting({
+            type: 'number',
+            setting: 'clarkwinkelmann-scout.tntsearchFuzzyDistance',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.tntsearchFuzzyDistance'),
+            placeholder: '2',
+        })
+        .registerSetting({
+            type: 'number',
+            setting: 'clarkwinkelmann-scout.tntsearchFuzzyPrefixLength',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.tntsearchFuzzyPrefixLength'),
+            placeholder: '50',
+        })
+        .registerSetting({
+            type: 'text',
+            setting: 'clarkwinkelmann-scout.tntsearchFuzzyMaxExpansions',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.tntsearchFuzzyMaxExpansions'),
+            placeholder: '2',
         });
 });

@@ -19,6 +19,7 @@ class Discussion extends \Flarum\Discussion\Discussion
     public function toSearchableArray(): array
     {
         return [
+            'id' => $this->id, // TNTSearch requires the ID to be part of the searchable data
             'title' => $this->title,
         ];
     }

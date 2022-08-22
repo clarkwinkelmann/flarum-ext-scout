@@ -26,6 +26,7 @@ class Post extends \Flarum\Post\Post
         $formatter = resolve(Formatter::class);
 
         return [
+            'id' => $this->id,
             // TODO: convert $this to CommentPost to use as context?
             // We use the rendered version and not unparsed version as the unparsed version might expose original text that's hidden by extensions in the output
             // strip_tags is used to strip HTML tags and their properties from the index but not provide any additional security

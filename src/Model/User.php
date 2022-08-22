@@ -33,6 +33,7 @@ class User extends \Flarum\User\User
     public function toSearchableArray(): array
     {
         return [
+            'id' => $this->id,
             'displayName' => $this->display_name,
             'username' => $this->username,
             'bio' => $this->bio,

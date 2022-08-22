@@ -9,13 +9,11 @@ You only need to manually import data when you enable the extension (see command
 
 The external search driver is used server-side to filter down the MySQL results, so it should still be compatible with every other extension and search gambits.
 
-Algolia and Meilisearch drivers are included in the extension.
+[Algolia](https://www.algolia.com/) and [Meilisearch](https://www.meilisearch.com/) drivers are included in the extension.
+[TNTSearch](https://github.com/teamtnt/tntsearch) is supported but requires the manual installation of an additional package.
 The Scout database and collection drivers cannot be used (they would be worst than Flarum's built-in database search).
 
-For convenience, this extension already includes the PHP SDK of both Algolia and Meilisearch.
-However, if you are not running the latest Meilisearch version you might need to explicitly install an older version of the SDK.
-
-If you are regularly running `composer update` on all your dependencies, you should add an explicit requirement for the Meilisearch SDK in your `composer.json` because the extension requires `*` which might jump to a newer Meilisearch SDK version as soon as it comes out.
+See below for the specific requirements and configuration of each driver.
 
 While only discussions and users are searchable in Flarum, this implementation also uses a `posts` search index which is merged with discussion search results in a similar way to the Flarum native search.
 The discussion result sort currently prioritize best post matching because I have not found a way to merge the match score of discussions and posts indices.
@@ -32,6 +30,55 @@ php flarum scout:delete-index {name}  Delete an index (generally not needed)
 ```
 
 A future version of this extension will include an extender for other extensions to add indexable data.
+
+### Algolia
+
+The Algolia driver requires an account on the eponymous cloud service.
+
+### Meilisearch
+
+The Meilisearch driver requires a running Meilisearch server instance.
+The server can be hosted anywhere as long as it can be reached over the network.
+By default, the extension attempts to connect to a server at `127.0.0.1:7700`.
+
+If you are not running the latest Meilisearch version you might need to explicitly install an older version of the SDK.
+Likewise, if you are regularly running `composer update` on all your dependencies, you should also add an explicit requirement for the Meilisearch SDK in your `composer.json` because the extension requires `*` which might jump to a newer Meilisearch SDK version as soon as it comes out.
+
+To install and lock the current latest version:
+
+    composer require meilisearch/meilisearch-php
+
+Unfortunately Meilisearch doesn't seem to advertise which specific version of the Composer package is compatible with each server version.
+You can find the list of releases at https://packagist.org/packages/meilisearch/meilisearch-php
+
+Once you know which version you need, you can lock it, for example to install the older 0.23:
+
+    composer require meilisearch/meilisearch-php:"0.23.*"
+
+The only settings for Meilisearch are **Host** and **Key**.
+Everything else is configured in the Meilisearch server itself.
+
+### TNTSearch
+
+The TNTSearch library requires the sqlite PHP extension, therefore it's not included by default with Scout.
+
+To install it, make sure you have the sqlite PHP extension enabled for both command line and webserver and run:
+
+    composer require teamtnt/laravel-scout-tntsearch-driver
+
+TNTSearch uses local sqlite databases for each index.
+The databases are stored in `<flarum>/storage/tntsearch` which must be writable.
+
+The following settings are exposed.
+What each setting does isn't entirely clear, TNTSearch own documentation doesn't offer much guidance.
+
+- **Max Docs**: this likely impacts how many results Flarum will be able to show for a query
+- **Fuziness** (on/off): seems to be the typos/variation matching
+- **Fuzziness Levenshtein Distance**
+- **Fuzziness Prefix Length**: no idea what it does
+- **Fuzziness Max Expansions** no idea what it does
+
+**As You Type** and **Search Boolean** are hard-coded to enabled, though they don't seem to work as described in TNTSearch documentation.
 
 ## Installation
 

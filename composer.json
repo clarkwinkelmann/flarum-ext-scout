@@ -13,6 +13,9 @@
         "http-interop/http-factory-guzzle": "^1.0",
         "meilisearch/meilisearch-php": "*"
     },
+    "require-dev": {
+        "teamtnt/laravel-scout-tntsearch-driver": "^11.6"
+    },
     "authors": [
         {
             "name": "Clark Winkelmann",
