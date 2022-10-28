@@ -2,13 +2,14 @@
 
 namespace ClarkWinkelmann\Scout;
 
-use Flarum\Discussion\Discussion;
+use ClarkWinkelmann\Scout\Job\MakeSearchable;
+use ClarkWinkelmann\Scout\Job\RemoveFromSearch;
 use Flarum\Foundation\AbstractServiceProvider;
-use Flarum\Post\CommentPost;
-use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
-use Flarum\User\User;
+use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Support\Collection;
 use Laravel\Scout\EngineManager;
+use Laravel\Scout\Scout;
 use MeiliSearch\Client as MeiliSearch;
 
 /**
@@ -35,13 +36,76 @@ class ScoutServiceProvider extends AbstractServiceProvider
         $this->container->singleton(EngineManager::class, function ($app) {
             return new FlarumEngineManager($app);
         });
+
+        Scout::makeSearchableUsing(MakeSearchableDisable::class);
+        Scout::removeFromSearchUsing(MakeSearchableDisable::class);
+
+        $this->container->singleton('scout.searchable', function () {
+            return [];
+        });
+
+        $this->container->singleton('scout.attributes', function () {
+            return [];
+        });
     }
 
     public function boot()
     {
-        CommentPost::observe(new FlarumModelObserver());
-        Discussion::observe(new FlarumModelObserver());
-        Post::observe(new FlarumModelObserver());
-        User::observe(new FlarumModelObserver());
+        Collection::macro('searchable', function () {
+            /**
+             * @var Collection $this
+             */
+            if ($this->isEmpty()) {
+                return;
+            }
+
+            $wrappedCollection = $this->map(function ($model) {
+                if ($model instanceof ScoutModelWrapper) {
+                    return $model;
+                }
+
+                return new ScoutModelWrapper($model);
+            });
+
+            $first = $wrappedCollection->first();
+
+            $settings = resolve(SettingsRepositoryInterface::class);
+
+            if (!$settings->get('clarkwinkelmann-scout.queue')) {
+                return $first->searchableUsing()->update($wrappedCollection);
+            }
+
+            // Queue and connection choice has been removed compared to original Scout code
+            // could be re-introduced later if we implement them in the Flarum version
+            resolve(Dispatcher::class)->dispatch(new MakeSearchable($wrappedCollection));
+        });
+
+        Collection::macro('unsearchable', function () {
+            /**
+             * @var Collection $this
+             */
+            if ($this->isEmpty()) {
+                return;
+            }
+
+            $wrappedCollection = $this->map(function ($model) {
+                if ($model instanceof ScoutModelWrapper) {
+                    return $model;
+                }
+
+                return new ScoutModelWrapper($model);
+            });
+
+            $first = $wrappedCollection->first();
+
+            $settings = resolve(SettingsRepositoryInterface::class);
+
+            if (!$settings->get('clarkwinkelmann-scout.queue')) {
+                return $first->searchableUsing()->delete($wrappedCollection);
+            }
+
+            // Queue and connection choice has been removed compared to original Scout code
+            resolve(Dispatcher::class)->dispatch(new RemoveFromSearch($wrappedCollection));
+        });
     }
 }
