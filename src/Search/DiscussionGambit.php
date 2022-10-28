@@ -2,28 +2,22 @@
 
 namespace ClarkWinkelmann\Scout\Search;
 
-use ClarkWinkelmann\Scout\Model as ScoutModel;
+use ClarkWinkelmann\Scout\ScoutStatic;
+use Flarum\Discussion\Discussion;
 use Flarum\Post\Post;
 use Flarum\Search\GambitInterface;
 use Flarum\Search\SearchState;
 use Illuminate\Database\Query\Expression;
-use Laravel\Scout\Builder;
 
 class DiscussionGambit implements GambitInterface
 {
     public function apply(SearchState $search, $bit)
     {
-        $discussionBuilder = resolve(Builder::class, [
-            'model' => new ScoutModel\Discussion(),
-            'query' => $bit,
-        ]);
+        $discussionBuilder = ScoutStatic::makeBuilder(Discussion::class, $bit);
 
         $discussionIds = $discussionBuilder->keys()->all();
 
-        $postBuilder = resolve(Builder::class, [
-            'model' => new ScoutModel\Post(),
-            'query' => $bit,
-        ]);
+        $postBuilder = ScoutStatic::makeBuilder(Post::class, $bit);
 
         $postIds = $postBuilder->keys()->all();
         $postIdsCount = count($postIds);

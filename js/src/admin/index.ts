@@ -20,6 +20,19 @@ app.initializers.add('clarkwinkelmann-scout', () => {
             label: app.translator.trans('clarkwinkelmann-scout.admin.setting.prefix'),
         })
         .registerSetting({
+            type: 'switch',
+            setting: 'clarkwinkelmann-scout.queue',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.queue'),
+            help: app.translator.trans('clarkwinkelmann-scout.admin.setting.queueHelp'),
+        })
+        .registerSetting({
+            type: 'number',
+            setting: 'clarkwinkelmann-scout.limit',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.limit'),
+            placeholder: app.translator.trans('clarkwinkelmann-scout.admin.setting.limitPlaceholder'),
+            help: app.translator.trans('clarkwinkelmann-scout.admin.setting.limitHelp'),
+        })
+        .registerSetting({
             type: 'text',
             setting: 'clarkwinkelmann-scout.algoliaId',
             label: app.translator.trans('clarkwinkelmann-scout.admin.setting.algoliaId'),

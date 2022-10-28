@@ -2,19 +2,16 @@
 
 namespace ClarkWinkelmann\Scout\Search;
 
-use ClarkWinkelmann\Scout\Model\User;
+use ClarkWinkelmann\Scout\ScoutStatic;
 use Flarum\Search\GambitInterface;
 use Flarum\Search\SearchState;
-use Laravel\Scout\Builder;
+use Flarum\User\User;
 
 class UserGambit implements GambitInterface
 {
     public function apply(SearchState $search, $bit)
     {
-        $builder = resolve(Builder::class, [
-            'model' => new User(),
-            'query' => $bit,
-        ]);
+        $builder = ScoutStatic::makeBuilder(User::class, $bit);
 
         $ids = $builder->keys();
 
