@@ -83,7 +83,7 @@ What each setting does isn't entirely clear, TNTSearch own documentation doesn't
 ## Installation
 
 > This extension is still experimental. Please test on a staging server first.
-> I have not tested Algolia or async queues yet.
+> I have not tested Algolia personally yet, but from feedback it seems to be working.
 
     composer require clarkwinkelmann/flarum-ext-scout
 
