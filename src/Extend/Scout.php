@@ -6,6 +6,7 @@ use ClarkWinkelmann\Scout\FlarumSearchableScope;
 use ClarkWinkelmann\Scout\ScoutModelWrapper;
 use Flarum\Extend\ExtenderInterface;
 use Flarum\Extension\Extension;
+use Flarum\Extension\ExtensionManager;
 use Flarum\Foundation\ContainerUtil;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -120,6 +121,18 @@ class Scout implements ExtenderInterface
     public function extend(Container $container, Extension $extension = null)
     {
         if (!class_exists($this->modelClass)) {
+            return;
+        }
+
+        /**
+         * @var $manager ExtensionManager
+         */
+        $manager = $container->make(ExtensionManager::class);
+
+        // By design extensions will always call the extender if Scout is installed without checking if it's enabled
+        // We could continue setting the container bindings which would just never be used
+        // But the model scope and event listeners must be skipped if the extension is disabled
+        if (!$manager->isEnabled('clarkwinkelmann-scout')) {
             return;
         }
 
