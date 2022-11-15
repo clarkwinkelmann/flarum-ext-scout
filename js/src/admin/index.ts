@@ -33,6 +33,13 @@ app.initializers.add('clarkwinkelmann-scout', () => {
             help: app.translator.trans('clarkwinkelmann-scout.admin.setting.limitHelp'),
         })
         .registerSetting({
+            type: 'number',
+            setting: 'clarkwinkelmann-scout.queryMinLength',
+            label: app.translator.trans('clarkwinkelmann-scout.admin.setting.queryMinLength'),
+            placeholder: app.translator.trans('clarkwinkelmann-scout.admin.setting.queryMinLengthPlaceholder'),
+            help: app.translator.trans('clarkwinkelmann-scout.admin.setting.queryMinLengthHelp'),
+        })
+        .registerSetting({
             type: 'text',
             setting: 'clarkwinkelmann-scout.algoliaId',
             label: app.translator.trans('clarkwinkelmann-scout.admin.setting.algoliaId'),

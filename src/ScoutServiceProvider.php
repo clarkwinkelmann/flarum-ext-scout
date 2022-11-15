@@ -5,6 +5,8 @@ namespace ClarkWinkelmann\Scout;
 use ClarkWinkelmann\Scout\Job\MakeSearchable;
 use ClarkWinkelmann\Scout\Job\RemoveFromSearch;
 use Flarum\Foundation\AbstractServiceProvider;
+use Flarum\Frontend\Assets;
+use Flarum\Frontend\Compiler\Source\SourceCollector;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Support\Collection;
@@ -46,6 +48,29 @@ class ScoutServiceProvider extends AbstractServiceProvider
 
         $this->container->singleton('scout.attributes', function () {
             return [];
+        });
+
+        // It's better to inject some javascript directly rather than write a javascript module. Benefits:
+        // - No additional bundle size if the feature is not used.
+        // - No need to wait for app.forum to be ready.
+        // - No Webpack overhead code.
+        // We could also skip the initializer entirely but this will produce better errors if something goes wrong.
+        // Only downside of this approach is that the cache must be cleared when the setting is changed.
+        $this->container->resolving('flarum.assets.forum', function (Assets $assets) {
+            /**
+             * @var $settings SettingsRepositoryInterface
+             */
+            $settings = $this->container->make(SettingsRepositoryInterface::class);
+
+            $length = (int)$settings->get('clarkwinkelmann-scout.queryMinLength');
+
+            if ($length > 0) {
+                $assets->js(function (SourceCollector $sources) use ($length) {
+                    $sources->addString(function () use ($length) {
+                        return "app.initializers.add('scout-min-length',function(){flarum.core.compat['components/Search'].MIN_SEARCH_LEN=$length});";
+                    });
+                });
+            }
         });
     }
 
