@@ -2,7 +2,11 @@
 
 namespace ClarkWinkelmann\Scout;
 
+use ClarkWinkelmann\AdvancedSearchHighlight\Highlighter;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
+use Illuminate\Support\Arr;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\MeiliSearchEngine;
 
@@ -12,6 +16,17 @@ use Laravel\Scout\Engines\MeiliSearchEngine;
  */
 class ScoutStatic
 {
+    // This is not really the attributes to highlight, rather it's the attributes highlights will be extracted for
+    // The actual list of attributes to highlight is configured in the advanced-search-highlight extension
+    public static $attributesToHighlight = [
+        Discussion::class => [
+            'title',
+        ],
+        Post::class => [
+            'content',
+        ],
+    ];
+
     protected static function useQueue(): bool
     {
         $settings = resolve(SettingsRepositoryInterface::class);
@@ -59,6 +74,39 @@ class ScoutStatic
     {
         $wrapped = new ScoutModelWrapper(new $class);
 
+        $isMeilisearch = $wrapped->searchableUsing() instanceof MeiliSearchEngine;
+
+        if ($isMeilisearch && is_null($callback) && class_exists(Highlighter::class)) {
+            $callback = function ($meilisearch, $query, $searchParams) use ($class) {
+                $attributes = Arr::get(self::$attributesToHighlight, $class) ?? [];
+
+                $results = $meilisearch->rawSearch($query, $searchParams + [
+                        'attributesToHighlight' => $attributes,
+                        'showMatchesPosition' => true,
+                    ]);
+
+                foreach ($results['hits'] as $hit) {
+                    foreach ($attributes as $attribute) {
+                        $positions = Arr::get($hit, '_matchesPosition.' . $attribute);
+
+                        if (is_array($positions)) {
+                            foreach ($positions as $position) {
+                                $after = substr($hit[$attribute], $position['start'] + $position['length'], 1);
+
+                                Highlighter::addHighlightRule(
+                                    substr($hit[$attribute], $position['start'], $position['length']),
+                                    $position['start'] === 0 ? null : substr($hit[$attribute], $position['start'] - 1, 1),
+                                    $after === '' ? null : $after
+                                );
+                            }
+                        }
+                    }
+                }
+
+                return $results;
+            };
+        }
+
         $builder = resolve(Builder::class, [
             'model' => $wrapped,
             'query' => $query,
@@ -72,7 +120,7 @@ class ScoutStatic
         // Developers can still customize it after getting the instance
         if ($limit > 0) {
             $builder->take($limit);
-        } else if ($wrapped->searchableUsing() instanceof MeiliSearchEngine) {
+        } else if ($isMeilisearch) {
             // Meilisearch default limit of 20 is extremely low
             // If you have a large number of models that aren't visible to guests
             // you might end up with not a single result after the visibility scope is applied

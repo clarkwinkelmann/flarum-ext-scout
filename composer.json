@@ -16,6 +16,9 @@
     "require-dev": {
         "teamtnt/laravel-scout-tntsearch-driver": "^11.6"
     },
+    "suggest": {
+        "clarkwinkelmann/flarum-ext-advanced-search-highlight": "*"
+    },
     "authors": [
         {
             "name": "Clark Winkelmann",
@@ -43,7 +46,10 @@
                 "name": "fas fa-search",
                 "backgroundColor": "#f47f68",
                 "color": "#fff"
-            }
+            },
+            "optional-dependencies": [
+                "clarkwinkelmann/flarum-ext-advanced-search-highlight"
+            ]
         }
     }
 }
