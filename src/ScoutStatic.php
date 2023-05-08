@@ -91,11 +91,17 @@ class ScoutStatic
 
                         if (is_array($positions)) {
                             foreach ($positions as $position) {
-                                $after = substr($hit[$attribute], $position['start'] + $position['length'], 1);
+                                // Meilisearch start index is in bytes while the length is in characters
+                                // This requires a mix of str and mb_str methods to extract characters in the right places
+                                $textStartingAtPosition = substr($hit[$attribute], $position['start']);
+                                $after = mb_substr($textStartingAtPosition, $position['length'], 1);
+
+                                // 4 bytes back should be enough to find a valid UTF8 character at the end
+                                $backtrackFromStartToFindFullCharacter = min($position['start'], 4);
 
                                 Highlighter::addHighlightRule(
-                                    substr($hit[$attribute], $position['start'], $position['length']),
-                                    $position['start'] === 0 ? null : substr($hit[$attribute], $position['start'] - 1, 1),
+                                    mb_substr($textStartingAtPosition, 0, $position['length']),
+                                    $position['start'] === 0 ? null : mb_substr(substr($hit[$attribute], $position['start'] - $backtrackFromStartToFindFullCharacter, $backtrackFromStartToFindFullCharacter), -1),
                                     $after === '' ? null : $after
                                 );
                             }
